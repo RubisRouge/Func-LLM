@@ -14,7 +14,7 @@ class ThinkingLevel(StrEnum):
 
 
 class LLMConfig(BaseModel):
-    temperature: float = 0.8
+    temperature: float | None = None
     top_p: float | None = None
     top_k: int | None = None
     max_tokens: int = 1024

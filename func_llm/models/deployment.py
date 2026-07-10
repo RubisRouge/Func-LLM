@@ -5,9 +5,11 @@ from pydantic import BaseModel
 
 class AdapterType(StrEnum):
     ANTHROPIC_VERTEX_V1 = "anthropic_vertex_v1"
+    ANTHROPIC_VERTEX_V2 = "anthropic_vertex_v2"
     GEMINI_VERTEX_V1 = "gemini_vertex_v1"
     MISTRAL_VERTEX_V1 = "mistral_vertex_v1"
     OPENAI_AZURE_V1 = "openai_azure_v1"
+    OPENAI_AZURE_V2 = "openai_azure_v2"
 
 
 class Deployment(BaseModel):
