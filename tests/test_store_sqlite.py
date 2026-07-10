@@ -6,7 +6,7 @@ import pytest_asyncio
 from func_llm.errors import AuthError, DeploymentNotFoundError, ModelNotFoundError
 from func_llm.models.auth import AuthPrinciple
 from func_llm.models.deployment import AdapterType, Deployment
-from func_llm.models.model import LLMModel
+from func_llm.models.model import LLMModel, Provider
 from func_llm.store.deployments import SQLiteStore
 
 
@@ -19,7 +19,11 @@ async def store() -> AsyncGenerator[SQLiteStore]:
 
 @pytest.fixture
 def sample_model() -> LLMModel:
-    return LLMModel(id="claude-sonnet-4", name="Claude Sonnet 4")
+    return LLMModel(
+        id="claude-sonnet-4",
+        name="Claude Sonnet 4",
+        provider=Provider.ANTHROPIC,
+    )
 
 
 @pytest.fixture
@@ -50,7 +54,9 @@ class TestModelRepository:
     @pytest.mark.asyncio
     async def test_list(self, store: SQLiteStore, sample_model: LLMModel) -> None:
         await store.models.add(sample_model)
-        await store.models.add(LLMModel(id="gemini-2", name="Gemini 2"))
+        await store.models.add(
+            LLMModel(id="gemini-2", name="Gemini 2", provider=Provider.GEMINI)
+        )
         models = await store.models.list()
         assert len(models) == 2
 
@@ -69,7 +75,11 @@ class TestModelRepository:
     @pytest.mark.asyncio
     async def test_upsert(self, store: SQLiteStore, sample_model: LLMModel) -> None:
         await store.models.add(sample_model)
-        updated = LLMModel(id="claude-sonnet-4", name="Claude Sonnet 4 Updated")
+        updated = LLMModel(
+            id="claude-sonnet-4",
+            name="Claude Sonnet 4 Updated",
+            provider=Provider.ANTHROPIC,
+        )
         await store.models.add(updated)
         result = await store.models.get("claude-sonnet-4")
         assert result.name == "Claude Sonnet 4 Updated"

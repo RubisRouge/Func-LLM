@@ -3,32 +3,39 @@ from pydantic import ValidationError
 
 from func_llm.models.auth import BUILTIN_PRINCIPLES, AuthPrinciple
 from func_llm.models.deployment import AdapterType, Deployment
-from func_llm.models.model import LLMModel
+from func_llm.models.model import LLMModel, Provider
 
 
 class TestLLMModel:
     def test_create(self) -> None:
-        model = LLMModel(id="claude-sonnet-4", name="Claude Sonnet 4")
+        model = LLMModel(
+            id="claude-sonnet-4",
+            name="Claude Sonnet 4",
+            provider=Provider.ANTHROPIC,
+        )
         assert model.id == "claude-sonnet-4"
         assert model.name == "Claude Sonnet 4"
+        assert model.provider == Provider.ANTHROPIC
 
     def test_missing_field(self) -> None:
         with pytest.raises(ValidationError):
             LLMModel(id="test")  # type: ignore[call-arg]
 
     def test_serialization(self) -> None:
-        model = LLMModel(id="test", name="Test")
+        model = LLMModel(id="test", name="Test", provider=Provider.GEMINI)
         data = model.model_dump()
-        assert data == {"id": "test", "name": "Test"}
+        assert data == {"id": "test", "name": "Test", "provider": "gemini"}
         assert LLMModel.model_validate(data) == model
 
 
 class TestAdapterType:
     def test_values(self) -> None:
+        assert AdapterType.ANTHROPIC_VERTEX_V2.value == "anthropic_vertex_v2"
         assert AdapterType.ANTHROPIC_VERTEX_V1.value == "anthropic_vertex_v1"
         assert AdapterType.GEMINI_VERTEX_V1.value == "gemini_vertex_v1"
         assert AdapterType.MISTRAL_VERTEX_V1.value == "mistral_vertex_v1"
         assert AdapterType.OPENAI_AZURE_V1.value == "openai_azure_v1"
+        assert AdapterType.OPENAI_AZURE_V2.value == "openai_azure_v2"
 
     def test_from_string(self) -> None:
         assert AdapterType("anthropic_vertex_v1") == AdapterType.ANTHROPIC_VERTEX_V1

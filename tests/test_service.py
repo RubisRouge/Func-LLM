@@ -7,7 +7,7 @@ import pytest_asyncio
 from func_llm.errors import DeploymentNotFoundError
 from func_llm.models.auth import AuthPrinciple
 from func_llm.models.deployment import AdapterType, Deployment
-from func_llm.models.model import LLMModel
+from func_llm.models.model import LLMModel, Provider
 from func_llm.service import DeploymentService
 from func_llm.store.deployments.sqlite import SQLiteStore
 
@@ -26,7 +26,11 @@ async def service() -> AsyncGenerator[DeploymentService]:
 
 @pytest.fixture
 def sample_model() -> LLMModel:
-    return LLMModel(id="claude-sonnet-4", name="Claude Sonnet 4")
+    return LLMModel(
+        id="claude-sonnet-4",
+        name="Claude Sonnet 4",
+        provider=Provider.ANTHROPIC,
+    )
 
 
 @pytest.fixture
