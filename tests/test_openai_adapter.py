@@ -31,6 +31,8 @@ from func_llm.models.output import (
     ThinkingDelta,
 )
 from func_llm.providers.openai.azure_v1 import OpenAIAzureV1
+from func_llm.providers.openai.azure_v2 import OpenAIAzureV2
+from func_llm.providers.openai.azure_v3 import OpenAIAzureV3
 
 
 def _simple_input(text: str = "Hello") -> GenerationInput:
@@ -527,3 +529,53 @@ class TestParseStream:
         assert out.usage.output_tokens == 10
         assert out.usage.cache is not None
         assert out.usage.cache.read_tokens == 50
+
+
+class TestV2Serialize:
+    def test_strips_sampling_params(self) -> None:
+        adapter = OpenAIAzureV2()
+        inp = _simple_input()
+        inp = inp.model_copy(
+            update={"llm_config": LLMConfig(temperature=0.7, top_p=0.9)},
+        )
+        payload = adapter.serialize(inp)
+        assert "temperature" not in payload
+        assert "top_p" not in payload
+
+    def test_no_model_field(self) -> None:
+        adapter = OpenAIAzureV2()
+        payload = adapter.serialize(_simple_input())
+        assert "model" not in payload
+
+
+class TestV3Serialize:
+    def test_includes_model_field(self) -> None:
+        adapter = OpenAIAzureV3()
+        inp = GenerationInput(
+            model="gpt-5.6-luna",
+            conversation=[
+                Message(
+                    source=MessageSource.USER,
+                    contents=[TextContent(text="Hi")],
+                ),
+            ],
+        )
+        payload = adapter.serialize(inp)
+        assert payload["model"] == "gpt-5.6-luna"
+
+    def test_strips_sampling_params(self) -> None:
+        adapter = OpenAIAzureV3()
+        inp = GenerationInput(
+            model="gpt-5.6-sol",
+            conversation=[
+                Message(
+                    source=MessageSource.USER,
+                    contents=[TextContent(text="Hi")],
+                ),
+            ],
+            llm_config=LLMConfig(temperature=0.5, top_p=0.9),
+        )
+        payload = adapter.serialize(inp)
+        assert "temperature" not in payload
+        assert "top_p" not in payload
+        assert payload["model"] == "gpt-5.6-sol"

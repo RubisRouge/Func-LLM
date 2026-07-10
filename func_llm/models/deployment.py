@@ -10,6 +10,7 @@ class AdapterType(StrEnum):
     MISTRAL_VERTEX_V1 = "mistral_vertex_v1"
     OPENAI_AZURE_V1 = "openai_azure_v1"
     OPENAI_AZURE_V2 = "openai_azure_v2"
+    OPENAI_AZURE_V3 = "openai_azure_v3"
 
 
 class Deployment(BaseModel):
