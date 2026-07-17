@@ -5,7 +5,7 @@ from typing import Any
 
 from .errors import ProviderError
 from .http import get_client
-from .media import MediaResolver, resolve_references, store_output_media
+from .media import MediaResolver
 from .models.input import GenerationInput
 from .models.output import GenerationOutput, StreamDelta
 from .providers import get_adapter
@@ -37,8 +37,7 @@ async def generate(
     svc = service or get_service()
 
     if media_resolver is not None:
-        resolved = await resolve_references(gen_input.conversation, media_resolver)
-        gen_input = gen_input.model_copy(update={"conversation": resolved})
+        await media_resolver.resolve_media(generation_input=gen_input) #Genereation input has now no ReferenceSource anymore
 
     deployment = await svc.resolve_deployment(gen_input.model, deployment_id)
     adapter = get_adapter(deployment.adapter)
@@ -82,5 +81,5 @@ async def _stream(
             raise ProviderError(response.status_code, body.decode())
         async for item in adapter.parse_stream(response.aiter_lines()):
             if isinstance(item, GenerationOutput) and media_resolver is not None:
-                item = await store_output_media(item, media_resolver)
+                await media_resolver.store_media(item)
             yield item
